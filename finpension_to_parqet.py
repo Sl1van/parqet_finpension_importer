@@ -12,6 +12,7 @@ Requires: pandas
 """
 
 import sys
+
 import pandas as pd
 
 
@@ -50,7 +51,8 @@ def _parqet_csv_write(df: pd.DataFrame, path: str) -> None:
 
 def convert(in_csv: str, out_csv: str) -> None:
     """
-    Reads transactions from `in_csv`, transforms each row, and writes the result to `out_csv` in Parqet format.
+    Reads transactions from `in_csv`, transforms each row, and writes the result to
+    `out_csv` in Parqet format.
     Skips blank/summary lines, sets tax and fee to 0.0, and fills missing numeric fields with 0.
     Requires `_map_type` and `_parqet_csv_write` helpers.
 
@@ -67,20 +69,20 @@ def convert(in_csv: str, out_csv: str) -> None:
 
         rows.append(
             {
-                "date":   r["Date"],                      # yyyy-MM-dd
-                "price":  float(r.get("Asset Price in CHF") or 0),
+                "date": r["Date"],  # yyyy-MM-dd
+                "price": float(r.get("Asset Price in CHF") or 0),
                 "shares": float(r.get("Number of Shares") or 0),
-                "tax":    0.0,
-                "fee":    0.0,
-                "type":   _map_type(r["Category"], float(r.get("Cash Flow") or 0)),
-                "isin":   r.get("ISIN", ""),
+                "tax": 0.0,
+                "fee": 0.0,
+                "type": _map_type(r["Category"], float(r.get("Cash Flow") or 0)),
+                "isin": r.get("ISIN", ""),
                 "currency": "CHF",
             }
         )
 
-    out_df = pd.DataFrame(rows, columns=[
-        "date", "price", "shares", "tax", "fee", "type", "isin", "currency"
-    ])
+    out_df = pd.DataFrame(
+        rows, columns=["date", "price", "shares", "tax", "fee", "type", "isin", "currency"]
+    )
     _parqet_csv_write(out_df, out_csv)
     print(f"✔ {len(out_df)} activities written to {out_csv!r}")
 
