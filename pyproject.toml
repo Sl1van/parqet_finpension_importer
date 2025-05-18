@@ -1,0 +1,11 @@
+[tool.ruff]
+target-version = "py311"          # or "py312" etc.
+line-length = 100                 # pick the width you like
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I001"]  # pycodestyle, pyflakes, warnings, import-sorter
+ignore = []                       # add rule codes here to silence false-positives
+
+[tool.ruff.format]                # Formatter options (all optional)
+docstring-code-format = true
+quote-style = "double"
