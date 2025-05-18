@@ -1,4 +1,15 @@
 #!/usr/bin/env python3
+"""
+finpension_to_parqet.py
+
+Converts Finpension transaction CSV exports to Parqet-compatible CSVs.
+
+- Maps Finpension categories to Parqet types (Buy, Sell, Dividend, TransferIn/Out).
+- Outputs CSV with semicolon separator, comma decimal mark, 5 decimal places.
+- Usage: python finpension_to_parqet.py input.csv output.csv
+
+Requires: pandas
+"""
 
 import sys
 import pandas as pd
@@ -38,6 +49,14 @@ def _parqet_csv_write(df: pd.DataFrame, path: str) -> None:
 
 
 def convert(in_csv: str, out_csv: str) -> None:
+    """
+    Reads transactions from `in_csv`, transforms each row, and writes the result to `out_csv` in Parqet format.
+    Skips blank/summary lines, sets tax and fee to 0.0, and fills missing numeric fields with 0.
+    Requires `_map_type` and `_parqet_csv_write` helpers.
+
+        in_csv (str): Path to Finpension CSV input.
+        out_csv (str): Path to Parqet CSV output.
+    """
     transactions = pd.read_csv(in_csv, sep=";", decimal=".", dtype=str).replace({pd.NA: None})
 
     rows = []
