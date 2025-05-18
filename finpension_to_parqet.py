@@ -74,11 +74,12 @@ def convert(in_csv: str, out_csv: str) -> None:
                 "fee":    0.0,
                 "type":   _map_type(r["Category"], float(r.get("Cash Flow") or 0)),
                 "isin":   r.get("ISIN", ""),
+                "currency": "CHF",
             }
         )
 
     out_df = pd.DataFrame(rows, columns=[
-        "date", "price", "shares", "tax", "fee", "type", "isin"
+        "date", "price", "shares", "tax", "fee", "type", "isin", "currency"
     ])
     _parqet_csv_write(out_df, out_csv)
     print(f"✔ {len(out_df)} activities written to {out_csv!r}")
