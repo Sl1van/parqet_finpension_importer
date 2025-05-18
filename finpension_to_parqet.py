@@ -67,21 +67,39 @@ def convert(in_csv: str, out_csv: str) -> None:
         if not r.get("Category"):
             continue
 
+        cash_flow = float(r.get("Cash Flow") or 0)
+
+        category = _map_type(r["Category"], cash_flow)
+
+        if category == "TransferIn" or category == "TransferOut":
+            continue  # unsupported
+
+        if category == "Dividend":
+            price = float(cash_flow)
+            amount = float(cash_flow)
+            shares = 1.0
+        else:
+            price = float(r.get("Asset Price in CHF"))
+            amount = ""
+            shares = float(r.get("Number of Shares"))
+
         rows.append(
             {
                 "date": r["Date"],  # yyyy-MM-dd
-                "price": float(r.get("Asset Price in CHF") or 0),
-                "shares": float(r.get("Number of Shares") or 0),
+                "price": price,
+                "amount": amount,
+                "shares": shares,
                 "tax": 0.0,
                 "fee": 0.0,
-                "type": _map_type(r["Category"], float(r.get("Cash Flow") or 0)),
+                "type": category,
                 "isin": r.get("ISIN", ""),
                 "currency": "CHF",
             }
         )
 
     out_df = pd.DataFrame(
-        rows, columns=["date", "price", "shares", "tax", "fee", "type", "isin", "currency"]
+        rows,
+        columns=["date", "amount", "price", "shares", "tax", "fee", "type", "isin", "currency"],
     )
     _parqet_csv_write(out_df, out_csv)
     print(f"✔ {len(out_df)} activities written to {out_csv!r}")
