@@ -11,7 +11,7 @@ Converts Finpension transaction CSV exports to Parqet-compatible CSVs.
 Requires: pandas
 """
 
-import sys
+import argparse
 
 import pandas as pd
 
@@ -106,6 +106,18 @@ def convert(in_csv: str, out_csv: str) -> None:
 
 
 if __name__ == "__main__":
-    if len(sys.argv) != 3:
-        sys.exit("Usage: python finpension_to_parqet.py transaktions_report.csv parqet.csv")
-    convert(sys.argv[1], sys.argv[2])
+
+    parser = argparse.ArgumentParser(
+        description="Convert Finpension transaction CSV exports to Parqet-compatible CSVs."
+    )
+    parser.add_argument(
+        "input_csv",
+        help="Path to the Finpension CSV input file (e.g., transaktions_report.csv).",
+    )
+    parser.add_argument(
+        "output_csv",
+        help="Path to the Parqet CSV output file (e.g., parqet.csv).",
+    )
+    args = parser.parse_args()
+
+    convert(args.input_csv, args.output_csv)
