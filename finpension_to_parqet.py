@@ -77,6 +77,47 @@ def _prepare_numeric_columns(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
+def _get_cash_flow(row) -> float:
+    """Helper to safely retrieve and convert 'Cash Flow' from a row."""
+    return float(row.get("Cash Flow") or 0)
+
+
+def _process_transfer_transaction(r, holding_account):
+    """Process TransferIn/TransferOut transactions."""
+    price = 1.0
+    cash_flow = _get_cash_flow(r)
+    amount = cash_flow
+    shares = cash_flow
+    return create_transaction(
+        r["Date"], _map_type(r["Category"], cash_flow), price, amount, shares, "", holding_account
+    )
+
+
+def _process_dividend_transaction(r, holding_account):
+    """Process Dividend transactions."""
+    cash_flow = _get_cash_flow(r)
+    price = cash_flow
+    amount = cash_flow
+    shares = 1.0
+    return [
+        create_transaction(r["Date"], "TransferIn", 1.0, cash_flow, cash_flow, "", holding_account),
+        create_transaction(r["Date"], "Dividend", price, amount, shares, r.get("ISIN", ""), ""),
+    ]
+
+
+def _process_buy_sell_transaction(r, holding_account):
+    """Process Buy/Sell transactions."""
+    cash_flow = _get_cash_flow(r)
+    price = float(r.get("Asset Price in CHF"))
+    shares = float(r.get("Number of Shares"))
+    return [
+        create_transaction(
+            r["Date"], "TransferOut", 1.0, abs(cash_flow), abs(cash_flow), "", holding_account
+        ),
+        create_transaction(r["Date"], r["Category"], price, "", shares, r.get("ISIN", ""), ""),
+    ]
+
+
 def convert(in_csv: str, out_csv: str, holding_account: str = "") -> None:
     """
     Reads transactions from `in_csv`, transforms each row, and writes the result to
@@ -95,66 +136,14 @@ def convert(in_csv: str, out_csv: str, holding_account: str = "") -> None:
         if not r.get("Category"):
             continue
 
-        cash_flow = float(r.get("Cash Flow") or 0)
-
-        category = _map_type(r["Category"], cash_flow)
+        category = _map_type(r["Category"], _get_cash_flow(r))
 
         if category in ("TransferIn", "TransferOut"):
-            price = 1.0
-            amount = cash_flow
-            shares = cash_flow
-            rows.append(
-                create_transaction(
-                    r["Date"],
-                    category,
-                    price,
-                    amount,
-                    shares,
-                    "",
-                    holding_account,
-                )
-            )
+            rows.append(_process_transfer_transaction(r, holding_account))
+        elif category == "Dividend":
+            rows.extend(_process_dividend_transaction(r, holding_account))
         else:
-            if category == "Dividend":
-                price = cash_flow
-                amount = cash_flow
-                shares = 1.0
-                rows.append(
-                    create_transaction(
-                        r["Date"], "TransferIn", 1.0, cash_flow, cash_flow, "", holding_account
-                    )
-                )
-            else:
-                price = float(r.get("Asset Price in CHF"))
-                amount = ""
-                shares = float(r.get("Number of Shares"))
-                cash_flow = abs(cash_flow)
-                rows.append(
-                    create_transaction(
-                        r["Date"],
-                        "TransferOut",
-                        1.0,
-                        cash_flow,
-                        cash_flow,
-                        "",
-                        holding_account,
-                    )
-                )
-
-            rows.append(
-                create_transaction(
-                    r["Date"],
-                    category,
-                    price,
-                    amount,
-                    shares,
-                    r.get(
-                        "ISIN",
-                        "",
-                    ),
-                    "",
-                )
-            )
+            rows.extend(_process_buy_sell_transaction(r, holding_account))
 
     out_df = pd.DataFrame(
         rows,
