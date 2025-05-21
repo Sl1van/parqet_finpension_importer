@@ -1,0 +1,4 @@
+﻿Date;Category;"Asset Name";ISIN;"Number of Shares";"Asset Currency";"Currency Rate";"Asset Price in CHF";"Cash Flow";Balance
+2025-04-09;Transfer;;;;CHF;1.0000000000;;660.000000;660.000000
+2025-04-15;Buy;"Swisscanto (CH) Index Equity Fund Large Caps Switzerland NT CHF";CH0215804714;3.912000;CHF;1.0000000000;166.771400;-652.4097168;7.590283
+2025-05-16;Dividend;"Swisscanto (CH) Index Equity Fund Large Caps Switzerland NT CHF";CH0215804714;;CHF;1.0000000000;;8.912912;16.503195
